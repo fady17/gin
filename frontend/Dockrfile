@@ -1,0 +1,34 @@
+# Use the official Bun image
+FROM oven/bun:latest AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json bun.lockb ./
+
+# Install dependencies
+RUN bun install
+
+# Copy project files
+COPY . .
+
+# Build the application
+RUN bun run build
+
+# Production stage
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Install serve to run the frontend
+RUN bun install -g serve
+
+# Expose the port the app runs on
+EXPOSE 5173
+
+# Command to serve the application
+CMD ["serve", "-s", "dist", "-l", "5173"]
